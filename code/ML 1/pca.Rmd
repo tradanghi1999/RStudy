@@ -1,0 +1,69 @@
+---
+title: "PCA"
+output: html_document
+date: "2024-03-09"
+---
+
+
+
+import data
+```{r}
+library(httr)
+url <- "https://github.com/tradanghi1999/RStudy/raw/main/pca/tomato.xlsx"
+raw_xlsx <- GET(url)$content
+tmp <- tempfile(fileext = '.xlsx')
+writeBin(raw_xlsx, tmp)
+tomato <- readxl::read_excel(tmp, sheet = 1, range = "A1:G8")
+
+summary(tomato)
+
+#tomato[which.max(tomato$Firm), ]
+
+#[which.min(tomato$Sweet), ]
+
+pairs(tomato[,2:7])
+
+
+library(ggplot2)
+p <- ggplot(data = tomato, aes(x = Firm, y = Melty)) 
+# Thêm tiêu đề và nhãn trục
+# Vẽ các điểm trên biểu đồ, phân loại theo cột z
+p + geom_point(aes(color = Tomatoes), size = 7)
+  
+
+p <- ggplot(data = tomato, aes(x = Mealy, y = Melty)) 
+# Thêm tiêu đề và nhãn trục
+# Vẽ các điểm trên biểu đồ, phân loại theo cột z
+p + geom_point(aes(color = Tomatoes), size = 7)
+
+
+
+df <- data.frame(
+  x = c(-0.30, 1.32, -1.07, -0.65, -0.87, -0.12, 1.68),
+  y = c(0.28,-1.47,1.13,0.81,0.77,-0.02,-1.49),
+  z = c("A","B","C","D","E","F","G")
+)
+
+
+p <- ggplot(data = df, aes(x = x, y = y)) 
+# Thêm tiêu đề và nhãn trục
+# Vẽ các điểm trên biểu đồ, phân loại theo cột z
+p + geom_point(aes(color = z), size = 7)
+
+
+tomato<-as.data.frame(tomato)
+rownames(tomato)<-tomato[,1]
+tomato<-tomato[,-1]
+
+library(FactoMineR)
+#PCA(tomato)
+res <- PCA(tomato, ncp = 4, graph = TRUE)
+print(res$eig)
+
+
+mpca = princomp(~ Ext_Color + Firm + Melty + Mealy + Sweet + Tomato_Flavor, data = tomato)
+summary((mpca))
+loadings(mpca)
+
+
+```

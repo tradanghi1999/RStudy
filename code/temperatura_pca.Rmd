@@ -1,0 +1,47 @@
+---
+title: "pca_temperature"
+output: html_document
+date: "2024-03-16"
+---
+
+```{r}
+
+
+#?read.csv()
+
+#library(RCurl)
+#url <- "https://raw.githubusercontent.com/tradanghi1999/RStudy/main/pca/Nhietdo_Phap.csv"
+#data <- read.csv(text = getURL(url), sep=";", dec=".", row.names=1, fileEncoding="latin1")
+
+
+temperature <- read.table("C:/Users/trada/Documents/GitHub/RStudy/pca/Nhietdo_Phap.csv", header=TRUE, sep=";", dec=".", row.names=1, fileEncoding="latin1")
+colnames(temperature)<-c("Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Lati", "Long", "Mean", "Ampl", "Region")
+
+scaled_temperature <- scale(temperature[,1:16])
+
+library(FactoMineR)
+library(ggplot2)
+
+res.PCA <-  PCA(temperature, quanti.sup=13:16,quali.sup=17,graph = T)
+#print(plot(res.PCA,cex=.7))
+print(res.PCA$eig)
+#print(scaled_temperature)
+
+#par(mar = c(2.6, 4.1, 1.1, 2.1))
+    ggplot(cbind.data.frame(x=1:nrow(res.PCA$eig),y=res.PCA$eig[,2])) + 
+      aes(x=x, y=y)+ 
+      geom_col(fill="blue") + 
+      xlab("Dimension") + 
+      ylab("Percentage of variance") + 
+      ggtitle("Decomposition of the total inertia") + 
+      theme_light() + 
+      theme(plot.title = element_text(hjust =0.5)) +   
+      scale_x_continuous(breaks=1:nrow(res.PCA$eig))
+
+dimdesc(res.PCA)
+
+res.PCA$ind$cos2
+
+```
+
+

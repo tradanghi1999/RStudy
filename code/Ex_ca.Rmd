@@ -1,0 +1,32 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+
+Ex1_CA <- read_excel("C:/Users/trada/OneDrive/Documents/MVA2024/Ex1_CA.xlsx", sheet = "Ex1")
+
+# Rename the first column to "country" and make it the row names
+rownames(Ex1_CA) <- Ex1_CA$Column1
+colnames(Ex1_CA)[1] <- "country"
+#Ex1_CA <- Ex1_CA[-1] 
+
+```
+
+
+```{r}
+library(FactoMineR)
+
+?CA()
+
+res.ca <- CA(Ex1_CA, col.sup = 1)
+
+summary(res.ca)
+
+```
+

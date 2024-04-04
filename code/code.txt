@@ -1,0 +1,19 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+
+# Assuming you have a DataFrame 'ozone' with columns 'maxO3' and 'maxO3v'
+# Fit a linear regression model
+model = LinearRegression()
+model.fit(ozone[['maxO3v']], ozone['maxO3'])
+
+# Create a scatter plot
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x='maxO3v', y='maxO3', data=ozone)
+plt.title("Ảnh hưởng của maxO3v đến hàm lượng ozone max")
+
+# Add the regression line
+plt.plot(ozone['maxO3v'], model.predict(ozone[['maxO3v']]), color='red', label='Regression Line')
+plt.legend()
+plt.show()

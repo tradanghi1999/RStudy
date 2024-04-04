@@ -1,0 +1,124 @@
+---
+title: "ML_YoungWine"
+output: html_document
+date: "2024-03-08"
+---
+
+
+YoungWine
+
+
+import data
+```{r}
+library(httr)
+url <- "https://github.com/tradanghi1999/RStudy/raw/main/regression/multi%20linear%20regression/Data%20MR.xlsx"
+raw_xlsx <- GET(url)$content
+tmp <- tempfile(fileext = '.xlsx')
+writeBin(raw_xlsx, tmp)
+youngWine <- readxl::read_excel(tmp, sheet = 4, range = "A1:K33")
+```
+
+#Consider the wine quality of young red wines data in the sheet “youngwine”. The winemakers believe that the sulfur content has a negative impact on the taste (thus, the overall quality) of the wine. Perform a thorough analysis of these data. Do the data support the winemakers ’ belief?
+
+```{r}
+library(ppcor)
+pcor_result <- pcor(youngWine)
+
+# Print the result
+print(pcor_result)
+```
+The partial correlation between quality of young red wines and hours studied and sulfur content is 0.40304527, which is a positive correlation. As current sulfur increases, the quaility tends to increase, assuming others is held constant.
+
+The p-value for this partial correlation is 0.056529058, which is not statistically significant at α = 0.05.
+
+
+#For the purposes of this exercise, ignore regressor x1 . Perform a thorough analysis of these data. What conclusions do you draw from this analysis
+
+```{r}
+youngWine_noX1 <- subset(youngWine, select = -x1)
+
+model <- lm(youngWine_noX1$y~., data = youngWine_noX1)
+
+summary(model)
+
+```
+There are the NA for the Coefficients of x7 and x10, which means that those regressor are excluded automatically in the lm because there would be some internal linear dependency of those regressors to other regressors.
+
+Therefore the summary point out the model of 1 response and 7 regressors not 9.
+
+p-value: 0.0003045 < .05 which points out the model is considered to be significant.
+Adjusted R-squared:  0.5426 which means the error when predicting could be 54%.
+
+
+
+```{r}
+youngWine_noX1X7 <- subset(youngWine_noX1, select = -x7)
+youngWine_noX1X7X10 <- subset(youngWine_noX1X7, select = -x10)
+  
+aNodModel <- lm(youngWine_noX1X7X10$y~., data = youngWine_noX1X7X10)
+
+summary(aNodModel)
+
+```
+So when we exclude the 2 regressors, we get the same result as automatically done by R.
+Next we will try to test the linear dependency of x7/x10 on other regressors.
+
+```{r}
+#youngWine_noX1X7 <- subset(youngWine_noX1, select = -x7)
+#no X7 model
+youngWine_noX1X7y <- subset(youngWine_noX1X7, select = -y)
+  
+noX7Model <- lm(youngWine_noX1X7y$x10~., data = youngWine_noX1X7y)
+summary(noX7Model)
+
+#no x10 model
+youngWine_noX1X10 <- subset(youngWine_noX1, select = -x10)
+youngWine_noX1X10y <- subset(youngWine_noX1X10, select = -y)
+
+noX10Model <- lm(youngWine_noX1X10y$x7~., data = youngWine_noX1X10y)
+summary(noX10Model)
+
+
+
+
+```
+Although 2 model seem to be acceptable, there is a problem that Adjusted R-squared: 1, which may point out there is overfitting problem in this model. We will try using the RegBest to find the optimal solution.
+
+```{r}
+library(FactoMineR)
+library(ISLR)
+library(dplyr)
+library(leaps)
+
+library(data.table)
+opX7Models <- regsubsets(x7~., data =youngWine_noX1X10y)
+opX7Model_index <- which.max(summary(opX7Models)$adjr2)
+opX7Model <- summary(opX7Models)$which[opX7Model_index,]
+print(opX7Model)
+print(summary(lm(x7~x5+x6, data =youngWine_noX1X10y)))
+
+
+
+
+opX10Models <- regsubsets(x10~., data =youngWine_noX1X7y)
+opX10Model_index <- which.max(summary(opX10Models)$adjr2)
+opX10Model <- summary(opX10Models)$which[opX10Model_index,]
+print(opX10Model)
+print(summary(lm(x10~x5+x6, data =youngWine_noX1X7y)))
+
+
+#opX7Model <- RegBest(y = youngWine_noX1X10y_copy[,6], x = youngWine_noX1X10y_copy[, c(2,3)], method = c("adjr2"), nbest = 1)
+
+#opX10Model <- RegBest(y = youngWine_noX1X7y$x10, x = youngWine_noX1X7y[, c(1,2,3,4,5,6,7)], , method = c("adjr2"), nbest = 1)
+
+
+
+```
+So in conclusion, we have that: 
+
+x7: anthocyanin color = x5: wine color - x6: pigment color
+x10: ionized anthocyanins =  2*(x5: wine color - x6: pigment color)/100
+
+Which may not be pointed out as the beginning by the problem description.
+
+

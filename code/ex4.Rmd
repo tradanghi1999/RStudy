@@ -1,0 +1,57 @@
+---
+title: "ex4"
+output: html_document
+date: "2024-03-06"
+---
+
+import data
+
+```{r}
+library(httr)
+url <- "https://github.com/tradanghi1999/RStudy/raw/main/regression/multi%20linear%20regression/Tourism%20GDP.xlsx"
+raw_xlsx <- GET(url)$content
+tmp <- tempfile(fileext = '.xlsx')
+writeBin(raw_xlsx, tmp)
+ex4data <- readxl::read_excel(tmp, sheet = 1, range = "A4:E17")
+```
+
+descriptive statistics
+
+```{r}
+pairs(ex4data[, 2:5])
+
+```
+
+test the model
+
+```{r}
+library(FactoMineR)
+#res <- RegBest(y = ex4data$GDP, x = ex4data[, 3:4], method = c("adjr2"), nbest = 1)
+#reg$best
+ex4dataR <- ex4data[, 2:5]
+model <- lm(ex4dataR$GDP~., data = ex4dataR)
+print(summary(model))
+#print(summary(model)$adj.r.squared < .05)
+```
+
+test another model
+
+```{r}
+library(FactoMineR)
+#res <- RegBest(y = ex4data$GDP, x = ex4data[, 3:4], method = c("adjr2"), nbest = 1)
+#reg$best
+model <- lm(ex4data$GDP~Arrival, data = ex4data)
+print(summary(model))
+```
+
+test another one
+
+```{r}
+library(FactoMineR)
+#res <- RegBest(y = ex4data$GDP, x = ex4data[, 3:4], method = c("adjr2"), nbest = 1)
+#reg$best
+model <- lm(ex4data$GDP~Investment + Arrival, data = ex4data)
+print(summary(model))
+```
+
+Conclude: GDP depends best on Arrival

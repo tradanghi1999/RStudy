@@ -1,0 +1,57 @@
+---
+title: "Ex2"
+output: html_notebook
+---
+
+
+Import data into a vavariable:
+```{r}
+library(httr)
+url <- "https://raw.githubusercontent.com/tradanghi1999/RStudy/main/regression/multi%20linear%20regression/ex1data2.txt"
+response <- GET(url)
+raw_text <- content(response, "parsed")
+ex1data2 <- read.table(text = raw_text, sep=",", header = TRUE)
+
+```
+
+Explore data:
+```{r}
+library(ggplot2)
+print(dim(ex1data2))
+pairs(ex1data2[,c(1,2,3)])
+```
+
+After exploring the data, predict that there is a linear relationship between x = Size and y = Price:
+
+```{r}
+#model
+model <- lm(ex1data2$Price~Size, data = ex1data2)
+#visualize model
+print(ggplot(data = ex1data2, aes(x = Size, y = Price)) + geom_point() + geom_smooth(method='lm', se=TRUE))
+```
+
+Summary and commment:
+```{r}
+#summary the model
+print(summary(model))
+```
+1) Pr(>|t|) = 2x10^(-14) < 0.05. 
+   Conclude: There is indeed a linear dependence of y = Price on x = Size
+
+2) Multiple R-squared:  0.731
+   Which means if the model can use the regressors mentioned to predict 73.1% the value of the response.
+    
+3) Post-inspection of the model with F-statistic:
+    p-value: = 2.2 * 10 (-14) < 0.05 
+    Conclue: the model is accepted
+    
+
+At the end, we examine another model to be sure:
+```{r}
+model2 <- lm(ex1data2$Price~., data = ex1data2)
+print(summary(model2))
+
+```
+Comment:
+  Adjusted R-squared:  0.7208 < 0.725 
+  Therefore, model1 is better than model2 is angles of number of variables and correction

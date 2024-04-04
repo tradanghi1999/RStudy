@@ -1,0 +1,62 @@
+---
+title: "ozone_vif"
+output: html_document
+date: "2024-03-09"
+---
+
+
+```{r}
+#lời khuyên: bạn dùng file markdown này sẽ dễ hơn, ít phải đánh lại nhiều
+#chỗ này bạn import file vào, ví dụ trong này là file ozone.txt của thầy cung cấp
+ozone <- read.table("~/MVA2024/ozone.txt", quote="\"", comment.char="")
+
+library(car)
+
+vif(lm(maxO3~., data = ozone))
+
+
+#để dùng hàm regbest, bạn phải gọi library FactoMineR
+# ozone[,1]: lấy y là cột thứ 1 của bảng ozone
+# ozone[, 2:11]: lấy x là cột từ cột thứ 2 đến cột 11
+library(FactoMineR)
+model <- RegBest(y = ozone[,1], x = ozone[, 2:11], method = c("adjr2") ,nbest = 1)
+
+
+#lệnh lấy ra mô hình tốt nhất và đưa vào biến dBest
+dBest <- model$best
+
+#in summary của dBest ra
+print(dBest)
+
+# một số trường hợp sẽ gặp lỗi NA giả dụ
+#Coefficients:
+#            Estimate Std. Error t value Pr(>|t|)    
+#(Intercept)  9.76225   11.10038   0.879    0.381    
+#T12          2.85308    0.48052   5.937 3.57e-08 ***
+#Ne9         -3.02423    0.64342  -4.700 7.71e-06 ***
+#maxO3v       N/A    N/A   N/A N/A***
+
+#hiểu là có sự phụ thuộc tuyến tính trong nội tại các biến với nhau.
+# vậy phải dùng các loại bỏ từ từ từng biến phụ thuộc. Nhưng thường là RegBest đã loại bỏ hộ mình rồi, và RegBest trả ra được kết quả thì hiều nó đã tự động loại ra rồi.
+
+#TH khác là lỗi x have to be continous -> hiểu là có một biết mà RegBest nó nhận dạng là biến đó là biến định tính (thí dụ Nam, Nữ) không phải biến định lượng. Vậy thì phải dùng lệnh loại bỏ cột đó ra nếu có.
+
+# ví dụ bỏ cột pluie, và gán vào biến mới là ozone_noPluie (bảng ozone khong có pluie)
+ozone_noPluie <- subset(ozone, select = -pluie)
+
+
+
+#Tuy nhiên, có một số trường hợp nó nhận diện nhầm thì mình phải tự loại bằng tay, hoặc dùng hàm ở dưới của lib BMA
+
+```
+
+
+
+```{r}
+library(BMA)
+
+reg.bma<-bicreg(ozone[,2:11],ozone[,1],strict = FALSE,OR=30)
+    summary(reg.bma)
+
+
+```

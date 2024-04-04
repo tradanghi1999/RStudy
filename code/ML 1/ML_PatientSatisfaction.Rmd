@@ -1,0 +1,50 @@
+---
+title: "ML_PatientSatisfaction"
+output: html_document
+date: "2024-03-08"
+---
+
+import data
+```{r}
+library(httr)
+url <- "https://github.com/tradanghi1999/RStudy/raw/main/regression/multi%20linear%20regression/Data%20MR.xlsx"
+raw_xlsx <- GET(url)$content
+tmp <- tempfile(fileext = '.xlsx')
+writeBin(raw_xlsx, tmp)
+patientSatisfaction <- readxl::read_excel(tmp, sheet = 3, range = "A1:E26")
+```
+
+#Fit an appropriate regression model to the satisfaction response using age and severity as the regressors and account for the medical versus surgical classification of each patient with an indicator variable. 
+
+```{r}
+model <- lm(Satisfaction~.,data = patientSatisfaction)
+print(summary(model))
+
+```
+
+#Has adding the indicator variable improved the model? Is that any evidence to support a claims that medical and surgical patients differ in their satisfaction?
+
+```{r}
+#we will test no indicator variable model
+
+noInMode <- lm(Satisfaction~Age + Severity + Anxiety, data = patientSatisfaction)
+print(summary(noInMode))
+
+
+
+#for finding the next answer we have to use one-way anova test
+
+#transform data
+library(data.table)
+patientSatisfaction_copy <- copy(patientSatisfaction)
+
+patientSatisfaction_copy$`Surgical-Medical` <- factor(patientSatisfaction_copy$`Surgical-Medical`, levels = c(0, 1), labels = c("surgical", "medical"))
+
+
+# Compute the analysis of variance
+aovModel <- aov(Satisfaction ~ `Surgical-Medical`, data = patientSatisfaction_copy)
+# Summary of the analysis
+summary(aovModel)
+
+```    
+We can see that the significant is better for  p-value improved. But Adjusted R-squared is higher which point out the later model will have some more error when predicting

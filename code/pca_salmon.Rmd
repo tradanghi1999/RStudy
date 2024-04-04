@@ -1,0 +1,207 @@
+---
+title: "pca_salmon"
+output: html_document
+date: "2024-03-23"
+---
+
+
+Import data into a vavariable:
+```{r}
+
+salmon.data <- read.delim2("~/MVA2024/Salmon_characteristics.txt")
+
+summary(salmon.data)
+
+```
+
+[Instructor] The MEAN value is usually near 0, which mean these data has been proccessed before
+
+
+```{r}
+pairs(salmon.data[,2: 8])
+
+# Load required packages
+library(corrplot)
+
+# Create a correlation matrix from your data frame
+cor_matrix <- cor(salmon.data[,2:17])
+
+# Plot the correlation matrix using corrplot
+corrplot(cor_matrix, method = "color", type = "upper", order = "hclust")
+```
+```{r}
+# Load required packages (if not already loaded)
+library(ggplot2)
+
+# Plot a histogram of values in the "column_name" column
+ggplot(data = salmon.data, aes(x = salt)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(x = "Column Name", y = "Frequency", title = "Histogram of Salt")
+```
+
+```{r}
+
+
+
+library(FactoMineR)
+library(factoextra)
+library(ggplot2)
+library(corrplot)
+
+
+
+
+```
+
+
+
+
+
+
+```{r}
+
+
+
+library(FactoMineR)
+library(factoextra)
+library(ggplot2)
+library(corrplot)
+#pca model
+res.PCA <-  PCA(salmon.data, scale.unit = TRUE,quali.sup=c(1,18),graph = T)
+
+#print the eigenvalue
+print(get_eigenvalue(res.PCA))
+
+#check The quality of representation
+var <- get_pca_var(res.PCA)
+print(corrplot(var$cos2, is.corr=FALSE))
+
+
+# Color by cos2 values: quality on the factor map
+fviz_pca_var(res.PCA, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE # Avoid text overlapping
+             )
+#check contribution of variance to PC
+# Contributions of variables to PC1
+fviz_contrib(res.PCA, choice = "var", axes = 1, top = 12)
+# Contributions of variables to PC2
+fviz_contrib(res.PCA, choice = "var", axes = 2, top = 12)
+# Contributions of variables to PC3
+fviz_contrib(res.PCA, choice = "var", axes = 3, top = 12)
+
+```
+
+As we can see from the eigenvalue table, that 
+Dim.1  5.46821199      34.17632493                    34.17632
+Dim.2  2.51222592      15.70141202                    49.87774
+Dim.3  1.80173714      11.26085714                    61.13859
+Dim.4  1.33622262       8.35139136                    69.48999
+Dim.5  1.24367295       7.77295594                    77.26294
+
+These DIM.s has eigenvalue > 1, but only three of them has  variance.percent > 10% Therefore we consider that Dim1 -> Dim3 is considered the PCA.
+
+With #check The quality of representation, we can see that in these projection
+our variables (Dim1 -> Dim3) is consider to be well-presented (only phenol and PH is not).
+
+Using #check contribution of variance to PC
+We have some conclusion that:
+Lactic.flora  -> salt is considered to contribute most to the variance of Dim1
+L -> b is considered to contribute most to the variance of Dim2
+water, lipid is considered to contribute most to the variance of Dim3
+
+[Instruction] 
+Tieu chi 1: eigenvalue            ======> 5 truc
+Tieu chi 2: variance.percent      ======> 3 truc
+Tieu chi chay stimulation: 17, 30 -> 31.2 ======> 2 truc
+```{r}
+#instruction
+#gọi tên 3 tiêu chí này lần lượt là:
+1) Sinh (vi khuẩn, ...)
+2) Lý (màu sắc)
+3) Hóa (nước, lipid)
+
+
+```
+
+
+
+
+
+
+
+
+
+```{r}
+
+# check inviduals
+fviz_pca_ind(res.PCA, 
+             col.ind = salmon.data$origin,
+             repel = TRUE # Avoid text overlapping (slow if many points)
+             )
+
+#check if Region is relevant to the distribtion of data
+fviz_pca_ind(res.PCA, habillage = 18,
+             addEllipses =TRUE, ellipse.type = "confidence",
+             palette = "jco", repel = TRUE) 
+
+```
+
+
+
+```{r}
+salmon.data.copy <- salmon.data[2:18]
+
+res.pca <-  PCA(salmon.data.copy, scale.unit = TRUE,quali.sup=17,graph = F)
+
+
+dimdesc(res.pca)
+```
+So, considering the dimdesc we can conclude that.
+
+We can classify the salmon best (Dim1) by using (latic.flora):
+                   correlation      p.value
+lactic.flora         0.9027708 9.041485e-12
+
+With this measurement, we can classify the following Origin
+                 Estimate    p.value
+origin=Belgium   2.871677 0.02182312
+origin=UK        2.208683 0.03851838
+origin=Ireland  -2.788912 0.03325308
+origin=Scotland -3.662799 0.02354381
+
+
+We can classify the salmon best (Dim2) by using (a):
+                   correlation      p.value
+a   0.8778081 1.890503e-10
+
+With this measurement, we can classify the following Origin
+                 Estimate    p.value
+origin=DK -2.154718 0.02308554
+
+
+```{r}
+
+# Create the plot
+ggplot(temperature, aes(x = latic.flora, y = a, color = Region)) +
+  geom_point(size = 5 +
+  
+  labs(title = "Circle Diagram of Temperature",
+       y = "Latitude")
+
+
+#Create Lat-Long Mean temperature color coded by Region
+# Calculate the radius for each circle based on the temperature
+temperature$rd_var <- sqrt(temperature$Var / pi)
+
+# Create the plot
+ggplot(temperature, aes(x = Long, y = Lati, color = Region)) +
+  geom_point(size = temperature$rd_var * 5) +
+  
+  labs(title = "Circle Diagram of Variance of Temperature",
+       y = "Latitude")
+
+
+```
+
+

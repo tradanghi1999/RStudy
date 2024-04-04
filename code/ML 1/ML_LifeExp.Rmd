@@ -1,0 +1,140 @@
+---
+title: "ML_LifeExp"
+output: html_document
+date: "2024-03-08"
+---
+
+
+import data
+
+```{r}
+library(httr)
+url <- "https://github.com/tradanghi1999/RStudy/raw/main/regression/multi%20linear%20regression/Data%20MR.xlsx"
+raw_xlsx <- GET(url)$content
+tmp <- tempfile(fileext = '.xlsx')
+writeBin(raw_xlsx, tmp)
+LifeExpData <- readxl::read_excel(tmp, sheet = 2, range = "A1:F39")
+```
+
+#a. Fit different multiple linear regression models for each response.
+```{r}
+oModel <- lm(LifeExpData$LifeExp~`People-per-TV` + `People-per-Dr`, data=LifeExpData)
+
+fModel <- lm(LifeExpData$LifeExpFemale~`People-per-TV` + `People-per-Dr`, data=LifeExpData)
+
+mModel <- lm(LifeExpData$LifeExpMale~`People-per-TV` + `People-per-Dr`, data=LifeExpData)
+
+print(summary(oModel))
+print(summary(fModel))
+print(summary(mModel))
+
+```
+#b. Test each model for significance of regression. What conclusions can you draw?
+
+```{r}
+lmp <- function (model) {
+	f <- summary(model)$fstatistic
+	p <- pf(f[1],f[2],f[3],lower.tail=F)
+	attributes(p) <- NULL
+	return(p)
+}
+
+print(lmp(oModel))
+print(lmp(fModel))
+print(lmp(mModel))
+
+
+```
+We conlude that all the models are significant
+
+#c. Use t tests to assess the contribution of each regressor to each model. Discuss your findings.
+
+```{r}
+print(coef(summary(oModel)))
+print(coef(summary(fModel)))
+print(coef(summary(mModel)))
+
+```
+As the t-test point out, there are some connection between the regressors and the reponse in these model for Pr(>|t|) < .05. But the contribution of these regressors are considered small for the |t-value| < 3. 
+
+But when considering the Intercept of these two regressors, there are some unified
+conditions that when the 2 regressors entangle, they both together make huge impact on the model.
+
+
+#d. Calculate R 2 and RAdj2 for each model.
+
+```{r}
+#overall model
+print('overall model')
+print(summary(oModel)$r.squared)
+print(summary(oModel)$adj.r.squared)
+
+#female mode
+print('female model')
+print(summary(fModel)$r.squared)
+print(summary(fModel)$adj.r.squared)
+
+#male model
+print('male model')
+print(summary(mModel)$r.squared)
+print(summary(mModel)$adj.r.squared)
+```
+
+
+
+#e. Find a 95% CI for the regression coeffi cient for People - per - Dr in each model.
+
+```{r}
+#overall
+print(confint(oModel, level=0.95))
+
+#female
+print(confint(fModel, level=0.95))
+
+#male
+print(confint(mModel, level=0.95))
+
+```
+
+
+#f. Create an indicator variable for gender. Perform a thorough analysis of the overall average life expectancy. Discuss the results of this analysis relative to your previous analyses of these data
+```{r}
+library(reshape2)
+# Melt the data frame to long format
+LifeExpData_long <- melt(LifeExpData, id.vars = c("Country", "People-per-TV", "People-per-Dr"), 
+                measure.vars = c("LifeExpMale", "LifeExpFemale"))
+
+# Create a new column "Gender" based on the "variable" column
+LifeExpData_long$Gender <- ifelse(LifeExpData_long$variable == "LifeExpMale", 1, 0)
+
+# Rename the "value" column to "LifeExp"
+names(LifeExpData_long)[which(names(LifeExpData_long) == "value")] <- "LifeExp"
+
+# Remove the "variable" column
+LifeExpData_long$variable <- NULL
+
+# Print the reshaped data frame
+print(LifeExpData_long)
+
+
+#fit the model
+#get rid of country column
+LifeExpData_long_noCountry <- subset(LifeExpData_long, select = -Country)
+#
+gfModel <- lm(LifeExpData_long_noCountry$LifeExp~., data = LifeExpData_long_noCountry)
+#print summary
+print(summary(gfModel))
+
+```
+
+* For p-value: 2.041e-10 <<, which meas significance of regression improves.
+
+* Pr(>|t|) of each regressor improves.
+
+* Adjusted R-squared is higher which means the model will give some error when predicting.
+
+
+
+
+
+

@@ -1,0 +1,80 @@
+---
+title: "ML_PeanutOil"
+output: html_document
+date: "2024-03-08"
+---
+
+import data
+```{r}
+library(httr)
+url <- "https://github.com/tradanghi1999/RStudy/raw/main/regression/multi%20linear%20regression/Data%20MR.xlsx"
+raw_xlsx <- GET(url)$content
+tmp <- tempfile(fileext = '.xlsx')
+writeBin(raw_xlsx, tmp)
+peanutOil <- readxl::read_excel(tmp, sheet = 1, range = "A1:F17")
+```
+#a. Fit a multiple linear regression model relating yield to these regressors.
+```{r}
+
+
+
+model <- lm(peanutOil$Yield~., data=peanutOil)
+dSummary <- summary(model)
+print(dSummary)
+print(names(dSummary))
+
+```
+#b. Test for significance of regression. What conclusions can you draw?
+```{r}
+lmp <- function (tdSummary) {
+	f <- tdSummary$fstatistic
+	p <- pf(f[1],f[2],f[3],lower.tail=F)
+	attributes(p) <- NULL
+	return(p)
+}
+
+
+p_value = lmp(dSummary)
+if(p_value <.05) {
+  print(paste0("p_value is: ", p_value, " < 0.05, regression is considered to be significant"))
+} else {
+  print(paste0("p_value is: ", p_value, " > 0.05, regression is considered not to be significant"))
+}
+```
+
+#• c. Use t tests to assess the contribution of each regressor to the model. Discuss your finding
+
+```{r}
+print(coef(dSummary)[, "Pr(>|t|)"])
+
+```
+For only Pr(>|t|) of  Temperature (oC) and Particle Size (mm) are below < 0.05.
+We consider these two variable being significant and others are not.
+
+
+#d. Calculate R2 and RAdj2 for this model. Compare these values to the R 2 and RAdj2 for the multiple linear regression model relating yield to temperature and particle size. Discuss your results
+
+```{r}
+#print r-squared
+print(dSummary$r.squared)
+
+#print adj-r-squared
+print(dSummary$adj.r.squared)
+
+
+#the multiple linear regression model relating yield to temperature and particle size
+anodModel <- lm(peanutOil$Yield~`Temperature (oC)` + `Particle Size (mm)`, data = peanutOil)
+
+dAnodSummary <- summary(anodModel)
+
+
+
+#print r-squared
+print(dAnodSummary$r.squared)
+
+#print adj-r-squared
+print(dAnodSummary$adj.r.squared)
+
+
+```
+the first model appears to be more correct than the second one (considering r-squared) but the second one is more precise when considering in regard to the contribution of the variables. (adj-r-squared)

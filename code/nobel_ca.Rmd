@@ -1,0 +1,74 @@
+---
+title: "nobel_ca"
+output: html_document
+date: "2024-03-30"
+---
+
+```{r}
+library(readxl)
+Nobel_avecMath <- read_excel("C:/Users/trada/OneDrive/Documents/MVA2024/Nobel_avecMath.xlsx")
+
+Novel_byCountry <- head(Nobel_avecMath, n = 8)[, 1:8]
+
+Novel_byRegion <- Nobel_avecMath[10:(nrow(Nobel_avecMath)-1), 1: 8]
+
+
+
+```
+
+```{r}
+#fformat data
+
+library(tidyverse)
+library(dplyr)
+
+Novel_byCountry <- Novel_byCountry %>% 
+  column_to_rownames(var = "Column1")
+
+Novel_byRegion <- Novel_byRegion %>% 
+  column_to_rownames(var = "Column1")
+
+
+```
+
+
+
+```{r}
+#chi-square test for country
+
+
+country.res.test.chi2 <- chisq.test(Novel_byCountry[,1:7])
+country.res.test.chi2
+
+region.res.test.chi2 <- chisq.test(Novel_byRegion[,1:7])
+region.res.test.chi2
+
+
+```
+
+```{r}
+names(region.res.test.chi2)
+region.x_squared <- region.res.test.chi2$statistic
+region.params <- region.res.test.chi2$parameter
+```
+
+For the p-value in 2 cases < 0.05, we conclue that there is some relationships between types of nobel medals and country or region, which have meaning in statistics
+
+*For the country
+```{r}
+library(FactoMineR)
+library(factoextra)
+
+country.res.ca <- CA(Novel_byCountry[,1:7])
+summary(country.res.ca)
+```
+
+
+*For the region
+```{r}
+library(FactoMineR)
+library(factoextra)
+
+region.res.ca <- CA(Novel_byRegion[,1:7])
+summary(region.res.ca)
+```

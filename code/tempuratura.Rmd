@@ -1,0 +1,179 @@
+---
+title: "temperatura"
+output: html_document
+date: "2024-03-19"
+---
+
+```{r}
+library(readr)
+library(ggplot2)
+library(janitor)
+library(tidyverse)
+
+csv_url <- "https://raw.githubusercontent.com/tradanghi1999/RStudy/main/pca/temperat.csv"
+temperature <- read_delim(csv_url, delim = ";", col_names = TRUE,locale = locale(encoding = "latin1"))
+
+
+city_dict <- data.frame(French = c("Amsterdam", "Athènes", "Berlin", "Bruxelles", "Budapest", "Copenhague", "Dublin", "Helsinki", "Kiev", "Cracovie", "Lisbonne", "Londres", "Madrid", "Minsk", "Moscou", "Oslo", "Paris", "Prague", "Reykjavik", "Rome", "Sarajevo", "Sofia", "Stockholm", "Anvers", "Barcelone", "Bordeaux", "Edimbourg", "Francfort", "Genève", "Gènes", "Milan", "Palerme", "Séville", "St. Pétersbourg", "Zurich"),
+                       English = c("Amsterdam", "Athens", "Berlin", "Brussels", "Budapest", "Copenhagen", "Dublin", "Helsinki", "Kiev", "Krakow", "Lisbon", "London", "Madrid", "Minsk", "Moscow", "Oslo", "Paris", "Prague", "Reykjavik", "Rome", "Sarajevo", "Sofia", "Stockholm", "Antwerp", "Barcelona", "Bordeaux", "Edinburgh", "Frankfurt", "Geneva", "Genoa", "Milan", "Palermo", "Seville", "St. Petersburg", "Zurich"))
+
+#change column name
+colnames(temperature)<-c("City","Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Mean", "Ampl", "Lati", "Long", "Region")
+
+
+temperature$Var <- apply(temperature[, c("Jan","Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")], 1, var)
+
+temperature$City <- str_replace_all(temperature$City, city_dict$French, city_dict$English)
+
+
+
+
+
+#temperature_filtered <- temperature[temperature$Region == "Quest", ]
+
+temperature_long <- tidyr::gather(temperature, key = "Month", value = "Temperature", Jan:Dec)
+
+
+#color-coded by region
+ggplot(temperature_long, aes(x = Month, y = Temperature, group = City, color = Region)) +
+  geom_line() +
+  theme_minimal() +
+  labs(title = "Monthly Temperature by City",
+       x = "Month",
+       y = "Temperature (°C)")
+
+
+
+#Create Lat-Long Mean temperature color coded by Region
+# Calculate the radius for each circle based on the temperature
+temperature$rd_mean <- sqrt(temperature$Mean / pi)
+
+# Create the plot
+ggplot(temperature, aes(x = Long, y = Lati, color = Region)) +
+  geom_point(size = temperature$rd_mean * 5) +
+  
+  labs(title = "Circle Diagram of Temperature",
+       y = "Latitude")
+
+
+#Create Lat-Long Mean temperature color coded by Region
+# Calculate the radius for each circle based on the temperature
+temperature$rd_var <- sqrt(temperature$Var / pi)
+
+# Create the plot
+ggplot(temperature, aes(x = Long, y = Lati, color = Region)) +
+  geom_point(size = temperature$rd_var * 5) +
+  
+  labs(title = "Circle Diagram of Variance of Temperature",
+       y = "Latitude")
+
+
+
+
+
+#scale_x_continuous(limits = c(-123, -117)) +
+#scale_y_continuous(limits = c(33, 38)) +
+
+
+#library(rworldmap)
+
+
+#sPDF <- joinCountryData2Map(temperature,
+                         #   joinCode = "NAME",
+                          #  nameJoinColumn = "City")
+
+#dF <- sPDF@data
+
+
+
+#temperature$ID <- seq_along(temperature[, 1])
+
+```
+
+As the diagram (1) points out, the researcher thought that would be some dependence between the temperature and the region of these regions
+
+The digram (2) also show that, there is maybe some tendency that city near the south-western corner is a little bit hotter
+
+
+We then can use the PCA for deeper analysis
+```{r}
+
+library(FactoMineR)
+library(factoextra)
+library(ggplot2)
+library(corrplot)
+
+# pca model
+res.PCA <-  PCA(temperature, scale.unit = TRUE, quanti.sup=c(14,15,16,17,19,20,21),quali.sup=c(1,18),graph = F)
+
+
+#print the eigenvalue
+print(get_eigenvalue(res.PCA))
+
+#check The quality of representation
+var <- get_pca_var(res.PCA)
+print(corrplot(var$cos2, is.corr=FALSE))
+
+# Color by cos2 values: quality on the factor map
+fviz_pca_var(res.PCA, col.var = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE # Avoid text overlapping
+             )
+
+
+#check contribution of variance to PC
+# Contributions of variables to PC1
+fviz_contrib(res.PCA, choice = "var", axes = 1, top = 12)
+# Contributions of variables to PC2
+fviz_contrib(res.PCA, choice = "var", axes = 2, top = 12)
+
+
+
+
+
+# check inviduals
+fviz_pca_ind(res.PCA, col.ind = "cos2", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE # Avoid text overlapping (slow if many points)
+             )
+#check if Region is relevant to the distribtion of data
+fviz_pca_ind(res.PCA, habillage = 18,
+             addEllipses =TRUE, ellipse.type = "confidence",
+             palette = "jco", repel = TRUE) 
+
+
+
+
+```
+
+```{r}
+#Dimension descriptionddim
+#temperature$City <- sample(100, size = nrow(temperature), replace = TRUE)
+
+
+
+#temperature$Region <- unclass(temperature$Region)
+
+# pca model
+temperature.copy <- temperature
+
+indicator_mapping <- c("Ouest" = 1, "Sud" = 2, "Est" = 3, "Nord" = 4)
+temperature.copy$Region <-  indicator_mapping[temperature.copy$Region]
+temperature.copy <- temperature.copy[2:21]
+
+res.pca <-  PCA(temperature.copy, scale.unit = TRUE, quanti.sup=c(13,14,15,16), quali.sup = 17,graph = F)
+
+
+dimdesc(res.pca)
+
+```
+
+
+As we can see from the eigenvalue table, that only Dim1 and Dim2 have eigenvalue > 1, which mean we could keep these PC. Total cumulative.variance.percent > 95%, which mean this model is good enough.
+
+Variables that are away from the origin (JAN - DEC) so they are well represented on the factor map (Dim1 & Dim2).
+
+As can be seen from the graph that Region variable is considered not relevant to the distribution of the data point out on PCA
+
+In conclusion with the dimdesc we can conclude that the Mean is really correlated to Dim1 > 99%, and we could consider that Dim1 is Mean. About Dim2 it is really correlated to Ampl (|max - min|) but cannot consider it as Ampl. We consider Dim2 to be unnamed. 
+

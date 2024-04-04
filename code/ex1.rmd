@@ -1,0 +1,54 @@
+---
+title: "Ex1"
+output: html_notebook
+---
+
+
+Import data into a vavariable:
+```{r}
+library(httr)
+url <- "https://raw.githubusercontent.com/tradanghi1999/RStudy/main/regression/multi%20linear%20regression/ex1data1.txt"
+response <- GET(url)
+raw_text <- content(response, "parsed")
+ex1data1 <- read.table(text = raw_text, sep=",", header = TRUE)
+
+```
+
+Explore data:
+```{r}
+library(ggplot2)
+print(dim(ex1data1))
+print(ggplot(data=ex1data1,aes(x=Pop,y=FoodtruckProfit)) + geom_point(col="blue"))
+```
+
+After exploring the data, predict that there is a linear relationship between x and y:
+
+```{r}
+#model
+model <- lm(ex1data1$FoodtruckProfit~Pop, data = ex1data1)
+#visualize model
+print(ggplot(data = ex1data1, aes(x = Pop, y = FoodtruckProfit)) + geom_point() + geom_smooth(method='lm', se=TRUE))
+```
+
+Summary and commment:
+```{r}
+#summary the model
+print(summary(model))
+```
+1) Pr(>|t|) = 2x10^(-16) < 0.05. 
+   Conclude: There is indeed a linear dependence of y = FoodtruckProfit on x = Pop
+
+2) Multiple R-squared:  0.702
+   The variance of real data and the model could be up to 70.2%. 
+   Which means when the model explains 70.2% for the change in FoodtruckProfit by using the regressor (Pop)
+    
+3) Post-inspection of the model with F-statistic:
+    p-value: = 2.2 * 10 (-16) < 0.05 
+    Conclue: the model is accepted
+    
+    
+
+Post-check the model, Residual
+```{r}
+plot(model)
+```

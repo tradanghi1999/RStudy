@@ -1,0 +1,56 @@
+---
+title: "ex3"
+output: html_document
+date: "2024-03-05"
+---
+
+Import data into a vavariable:
+```{r}
+library(httr)
+url <- "https://raw.githubusercontent.com/tradanghi1999/RStudy/main/regression/multi%20linear%20regression/ex3.txt"
+response <- GET(url)
+raw_text <- content(response, "parsed")
+ex3data <- read.table(text = raw_text, sep="\t", header = TRUE)
+
+```
+
+Explore data:
+```{r}
+library(ggplot2)
+print(dim(ex3data))
+pairs(ex3data[, 2:8])
+```
+Prediction and Model
+
+```{r}
+library(FactoMineR)
+#we try
+#res = RegBest(y=ex3data$O.liking, x = ex3data[, 2:7], method= c("adjr2"), nbest=1)
+#res$best
+```
+For there is the error in the leaps, which mean the function detects a linear dependency between variables.
+
+```{r}
+library(FactoMineR)
+#we try again
+res = RegBest(y=ex3data$O.liking, x = ex3data[, 2:6], method= c("adjr2"), nbest=1)
+res$best
+```
+For  p-value: 0.2123 we conclude the model is not valid.
+And we also try to test the model of bodytaste
+
+```{r}
+library(FactoMineR)
+#we try again
+res = RegBest(y=ex3data$bodytaste, x = ex3data[, 2:6], method= c("adjr2"), nbest=1)
+res$best
+```
+We conclude thre is a linear dependency between bodytaste and another T.* variable
+
+We will try another model
+
+```{r}
+res = lm(ex3data$O.liking~bodytaste, data=ex3data)
+print(summary(res))
+
+```

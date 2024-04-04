@@ -1,0 +1,22 @@
+---
+title: "ca_selfStudy"
+output: html_document
+date: "2024-03-29"
+---
+
+```{r}
+library(FactoMineR)
+
+Both <- c(0.0498084291187739,0.0540540540540541,0.265418502202643
+)
+Husband_work_more <- c(0.544061302681992,0.735135135135135,0.631057268722467
+)
+Only_husband <- c(0.406130268199234,0.210810810810811,0.10352422907489
+)
+
+df <- data.frame(Both_work_equally = Both_work_equally, Husband_work_more = Husband_work_more, Only_husband = Only_husband)
+
+res.PCA <- PCA(df, scale.unit = TRUE, graph = T)
+
+```
+

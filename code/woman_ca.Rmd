@@ -1,0 +1,58 @@
+---
+title: "woman_ca"
+output: html_document
+date: "2024-03-30"
+---
+
+```{r}
+woman_dt <- read.delim("C:/Users/trada/OneDrive/Documents/MVA2024/woman_dt.txt")
+```
+```{r}
+library(tidyverse)
+library(dplyr)
+
+woman_dt <- woman_dt %>% 
+  column_to_rownames(var = "X")
+```
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+
+?CA()
+
+res.ca <- CA(woman_dt[,1:3])
+
+print(get_ca_row(res.ca)$inertia)
+
+
+
+#summary(res.ca)
+
+#print(res.ca$eig)
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+#find Chi-Square critical value
+qchisq(p=.05, df=1723, lower.tail=FALSE)
+
+```
+
+
+```{r}
+res.test.chi2 <- chisq.test(woman_dt[,1:3])
+    res.test.chi2
+```
+
+```{r}
+dd <- rbind(woman_dt,apply(woman_dt[,1:7],2,sum))
+    rownames(dd)[4] <- "Profil average"
+    round(prop.table(as.matrix(dd),margin=1),3)
+
+```
