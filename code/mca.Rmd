@@ -1,0 +1,58 @@
+---
+title: "mca"
+output: html_document
+date: "2024-04-06"
+---
+
+```{r }
+data_MCA_Hobbies <- read_delim("C:/Users/trada/OneDrive/Documents/MVA2024/data_MCA_Hobbies.csv", delim = ";")
+summary(data_MCA_Hobbies)
+
+head(data_MCA_Hobbies)
+
+dim(data_MCA_Hobbies)
+
+#data_MCA_Hobbies$`Marital status`
+
+#levels(data_MCA_Hobbies$`Marital status`) #error
+martial_status <- table(data_MCA_Hobbies$`Marital status`)
+martial_status
+
+
+```
+```{r}
+names(data_MCA_Hobbies)
+data_MCA_Hobbies$TV <- as.factor(data_MCA_Hobbies$TV)
+
+
+
+```
+
+
+```{r}
+library(FactoMineR)
+res.mca <- MCA(data_MCA_Hobbies, quali.sup = 19:22, quanti.sup = 23)
+
+
+```
+
+```{r}
+res.mca$eig
+
+#bar
+
+barplot(res.mca$eig[,2])
+barplot(res.mca$eig[,2], names.arg = 1: nrow(res.mca$eig))
+```
+```{r}
+X11()
+barplot(res.mca$eig[,2], names.arg = 1: nrow(res.mca$eig))
+```
+
+
+```{r}
+data(tea)
+library(Factoshiny)
+res <- Factoshiny(tea)
+
+```
